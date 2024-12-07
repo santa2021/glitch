@@ -13,32 +13,30 @@ app.get("/", (req, res) => {
   res.send("hello wolrd");
 });
 
-//获取系统进程表
+
 app.get("/status", (req, res) => {
   let cmdStr = "ps -ef";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
-      res.type("html").send("<pre>命令行执行错误：\n" + err + "</pre>");
+      res.type("html").send("<pre>Command line execution error：\n" + err + "</pre>");
     } else {
-      res.type("html").send("<pre>命令行执行结果：\n" + stdout + "</pre>");
+      res.type("html").send("<pre>Command line execution results：\n" + stdout + "</pre>");
     }
   });
 });
 
-//启动web
 app.get("/start", (req, res) => {
   let cmdStr =
     "chmod +x ./web.js && ./web.js -c ./config.json >/dev/null 2>&1 &";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
-      res.send("命令行执行错误：" + err);
+      res.send("Command line execution error：" + err);
     } else {
-      res.send("命令行执行结果：" + "启动成功!");
+      res.send("Command line execution results：" + "Started successfully!");
     }
   });
 });
 
-//获取系统版本、内存信息
 app.get("/info", (req, res) => {
   let cmdStr = "cat /etc/*release | grep -E ^NAME";
   exec(cmdStr, function (err, stdout, stderr) {
@@ -46,7 +44,7 @@ app.get("/info", (req, res) => {
       res.send("命令行执行错误：" + err);
     } else {
       res.send(
-        "命令行执行结果：\n" +
+        "Command line execution results：\n" +
           "Linux System:" +
           stdout +
           "\nRAM:" +
@@ -57,30 +55,27 @@ app.get("/info", (req, res) => {
   });
 });
 
-//文件系统只读测试
 app.get("/test", (req, res) => {
-  fs.writeFile("./test.txt", "这里是新创建的文件内容!", function (err) {
-    if (err) res.send("创建文件失败，文件系统权限为只读：" + err);
-    else res.send("创建文件成功，文件系统权限为非只读：");
+  fs.writeFile("./test.txt", "Here is the content of the newly created file!", function (err) {
+    if (err) res.send("Failed to create file, file system permissions are read-only：" + err);
+    else res.send("The file was created successfully and the file system permissions are not read-only.：");
   });
 });
 
-//下载web可执行文件
 app.get("/download", (req, res) => {
   download_web((err) => {
-    if (err) res.send("下载文件失败");
-    else res.send("下载文件成功");
+    if (err) res.send("Download file failed");
+    else res.send("Download file successfully");
   });
 });
 
 app.use(
   "/api",
   createProxyMiddleware({
-    target: "http://127.0.0.1:8080/", // 需要跨域处理的请求地址
-    changeOrigin: true, // 默认false，是否需要改变原始主机头为目标URL
-    ws: true, // 是否代理websockets
+    target: "http://127.0.0.1:8080/",
+    changeOrigin: true,
+    ws: true,
     pathRewrite: {
-      // 请求中去除/api
       "^/api": "/qwe",
     },
     onProxyReq: function onProxyReq(proxyReq, req, res) {},
@@ -89,41 +84,36 @@ app.use(
 
 /* keepalive  begin */
 function keepalive() {
-  // 1.请求主页，保持唤醒
   let render_app_url = "https://fuschia-aquatic-glider.glitch.me";
   exec("curl " + render_app_url, function (err, stdout, stderr) {
     if (err) {
-      console.log("保活-请求主页-命令行执行错误：" + err);
+      console.log("Keep alive-request home page-command line execution error：" + err);
     } else {
-      console.log("保活-请求主页-命令行执行成功，响应报文:" + stdout);
+      console.log("Keep alive - request homepage - command line execution is successful, response message:" + stdout);
     }
   });
 
-  // 2.请求服务器进程状态列表，若web没在运行，则调起
   exec("curl " + render_app_url + "/status", function (err, stdout, stderr) {
     if (!err) {
       if (stdout.indexOf("./web.js -c ./config.json") != -1) {
-        console.log("web正在运行");
+        console.log("web is running");
       } else {
-        //web未运行，命令行调起
         exec(
           "chmod +x ./web.js && ./web.js -c ./config.json >/dev/null 2>&1 &",
           function (err, stdout, stderr) {
             if (err) {
-              console.log("保活-调起web-命令行执行错误：" + err);
+              console.log("Keep alive-call up web-command line execution error：" + err);
             } else {
-              console.log("保活-调起web-命令行执行成功!");
+              console.log("Keep alive - call up web - command line execution successful!");
             }
           }
         );
       }
-    } else console.log("保活-请求服务器进程表-命令行执行错误: " + err);
+    } else console.log("Keep Alive - Request Server Process Table - Command Line Execution Error: " + err);
   });
 }
 setInterval(keepalive, 9 * 1000);
-/* keepalive  end */
 
-// 初始化，下载web
 function download_web(callback) {
   let fileName = "web.js";
   let url =
@@ -132,13 +122,13 @@ function download_web(callback) {
   request(url)
     .pipe(stream)
     .on("close", function (err) {
-      if (err) callback("下载文件失败");
+      if (err) callback("Download file failed");
       else callback(null);
     });
 }
 download_web((err) => {
-  if (err) console.log("初始化-下载web文件失败");
-  else console.log("初始化-下载web文件成功");
+  if (err) console.log("Initialization - Failed to download web file");
+  else console.log("Initialization-Download web file successfully");
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
