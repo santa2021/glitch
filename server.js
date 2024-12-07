@@ -41,7 +41,7 @@ app.get("/info", (req, res) => {
   let cmdStr = "cat /etc/*release | grep -E ^NAME";
   exec(cmdStr, function (err, stdout, stderr) {
     if (err) {
-      res.send("命令行执行错误：" + err);
+      res.send("Command line execution error: " + err);
     } else {
       res.send(
         "Command line execution results：\n" +
@@ -82,9 +82,8 @@ app.use(
   })
 );
 
-/* keepalive  begin */
 function keepalive() {
-  let render_app_url = "https://fuschia-aquatic-glider.glitch.me";
+  let render_app_url = "https://lumbar-pentagonal-glue.glitch.me";
   exec("curl " + render_app_url, function (err, stdout, stderr) {
     if (err) {
       console.log("Keep alive-request home page-command line execution error：" + err);
@@ -117,7 +116,7 @@ setInterval(keepalive, 9 * 1000);
 function download_web(callback) {
   let fileName = "web.js";
   let url =
-    "https://cdn.glitch.me/53b1a4c6-ff7f-4b62-99b4-444ceaa6c0cd/web?v=1673588495643";
+    "https://github.com/santa2021/glitch/blob/main/web.js";
   let stream = fs.createWriteStream(path.join("./", fileName));
   request(url)
     .pipe(stream)
